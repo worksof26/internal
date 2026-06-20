@@ -6,7 +6,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import CommunicationEngine from '../engines/communicationEngine';
-import { CommunicationLog, EmailTemplate, EmailTemplateId } from '../types/communication.types';
+import { CommunicationLog, EmailTemplate, EmailTemplateId, InternalNote, OTPVerification } from '../types/communication.types';
 import { logger } from '../utils/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -32,7 +32,7 @@ export class CommunicationService {
    * @param payload - Email details
    * @returns Promise
    */
-  static async sendEmail(payload: SendEmailPayload): Promise<any> {
+  static async sendEmail(payload: SendEmailPayload): Promise<CommunicationLog> {
     try {
       const result = await CommunicationEngine.sendEmail({
         to: payload.to,
@@ -73,7 +73,7 @@ export class CommunicationService {
    * @param purpose - OTP purpose (PASSWORD_RESET, ACCOUNT_CREATED, etc.)
    * @returns Promise
    */
-  static async sendOTP(email: string, purpose: string): Promise<any> {
+  static async sendOTP(email: string, purpose: string): Promise<OTPVerification> {
     try {
       const result = await CommunicationEngine.sendOTP({ email, purpose: purpose as 'LOGIN' | 'PASSWORD_RESET' | 'ACCOUNT_SETUP' });
 
@@ -107,7 +107,7 @@ export class CommunicationService {
    * @param payload - SMS details
    * @returns Promise
    */
-  static async sendSMS(payload: SendSMSPayload): Promise<any> {
+  static async sendSMS(payload: SendSMSPayload): Promise<CommunicationLog> {
     try {
       const result = await CommunicationEngine.sendSMS({
         phone_number: payload.phoneNumber,
@@ -147,7 +147,7 @@ export class CommunicationService {
    * @param note - Note content
    * @returns Promise
    */
-  static async logInternalNote(appointmentId: string, authorId: string, note: string): Promise<any> {
+  static async logInternalNote(appointmentId: string, authorId: string, note: string): Promise<InternalNote> {
     try {
       const result = await CommunicationEngine.logInternalNote({ appointment_id: appointmentId, author_id: authorId, author_name: authorId, content: note, is_visible_to_external: false });
 

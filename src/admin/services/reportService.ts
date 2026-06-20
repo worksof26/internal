@@ -13,6 +13,17 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+
+interface ReportsSummary {
+  total_submitted: number;
+  total_approved: number;
+  pending_review: number;
+  revision_requested: number;
+  delivered: number;
+  average_turnaround_days: number;
+  monthly_stats: Array<Record<string, number | string>>;
+}
+
 interface SubmitReportPayload {
   appointmentId: string;
   expertId: string;
@@ -230,7 +241,7 @@ export class ReportService {
    * @param filters - Query filters (expert, type, status, date range)
    * @returns Promise
    */
-  static async generateReportsSummary(filters: Record<string, unknown>): Promise<any> {
+  static async generateReportsSummary(filters: Record<string, unknown>): Promise<ReportsSummary> {
     try {
       // TODO: Fetch and aggregate from Supabase 'reports' table
       // Apply filters conditionally

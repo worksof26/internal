@@ -110,7 +110,7 @@ export class DocumentService {
    * @param actorId - User ID
    * @returns Promise
    */
-  static async deleteDocument(documentId: string, actorId: string): Promise<any> {
+  static async deleteDocument(documentId: string, actorId: string): Promise<void> {
     try {
       // TODO: Soft delete from Supabase (update is_deleted = true)
       // const { data, error } = await supabase

@@ -12,6 +12,7 @@ import {
   StatusTransitionContext,
   AppointmentStatus,
   AppointmentQueryOptions,
+  TimelineEvent,
 } from '../types/appointment.types';
 import { logger } from '../utils/logger';
 
@@ -259,7 +260,7 @@ export class AppointmentService {
     checklistItemId: string,
     completed: boolean,
     completedBy: string
-  ): Promise<any> {
+  ): Promise<{ id: string; completed: boolean }> {
     try {
       const result = await AppointmentEngine.updateChecklist({
         appointment_id: appointmentId,
@@ -332,7 +333,7 @@ export class AppointmentService {
    * @param appointmentId - Appointment ID
    * @returns Promise
    */
-  static async getAppointmentTimeline(appointmentId: string): Promise<any> {
+  static async getAppointmentTimeline(appointmentId: string): Promise<TimelineEvent[]> {
     try {
       // TODO: Fetch from Supabase 'appointment_timeline' table
       // const { data, error } = await supabase
