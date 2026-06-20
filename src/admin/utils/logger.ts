@@ -14,18 +14,18 @@ interface LogEntry {
   timestamp: string;
   level: LogLevel;
   message: string;
-  context?: Record<string, unknown>;
+  context?: unknown;
   error?: Error;
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment = import.meta.env.MODE === 'development';
 
   private formatLog(entry: LogEntry): string {
     const { timestamp, level, message, context, error } = entry;
     let log = `[${timestamp}] [${level}] ${message}`;
 
-    if (context && Object.keys(context).length > 0) {
+    if (context !== undefined) {
       log += ` ${JSON.stringify(context)}`;
     }
 
@@ -36,7 +36,7 @@ class Logger {
     return log;
   }
 
-  private log(level: LogLevel, message: string, context?: Record<string, unknown>, error?: Error): void {
+  private log(level: LogLevel, message: string, context?: unknown, error?: Error): void {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -69,19 +69,19 @@ class Logger {
     // this.sendToLoggingService(entry);
   }
 
-  debug(message: string, context?: Record<string, unknown>): void {
+  debug(message: string, context?: unknown): void {
     this.log(LogLevel.DEBUG, message, context);
   }
 
-  info(message: string, context?: Record<string, unknown>): void {
+  info(message: string, context?: unknown): void {
     this.log(LogLevel.INFO, message, context);
   }
 
-  warn(message: string, context?: Record<string, unknown>): void {
+  warn(message: string, context?: unknown): void {
     this.log(LogLevel.WARN, message, context);
   }
 
-  error(message: string, error?: Error, context?: Record<string, unknown>): void {
+  error(message: string, error?: Error, context?: unknown): void {
     this.log(LogLevel.ERROR, message, context, error);
   }
 }

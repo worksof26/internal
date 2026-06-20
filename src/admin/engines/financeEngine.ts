@@ -108,7 +108,7 @@ export class FinanceEngine {
         action_type: 'FIN_INVOICE_GENERATED',
         entity_type: 'INVOICE',
         entity_id: invoice.id,
-        after_state: invoice,
+        after_state: invoice as unknown as Record<string, unknown>,
         metadata: {
           amount_zar: (amount_cents / 100).toFixed(2),
           vat_zar: (vat_cents / 100).toFixed(2),
@@ -172,7 +172,7 @@ export class FinanceEngine {
         action_type: 'FIN_PAYMENT_RECORDED',
         entity_type: 'INVOICE',
         entity_id: invoice_id,
-        after_state: payment,
+        after_state: payment as unknown as Record<string, unknown>,
         metadata: {
           amount_zar: (amount_cents / 100).toFixed(2),
           payment_method,
