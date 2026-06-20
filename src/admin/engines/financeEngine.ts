@@ -8,14 +8,9 @@
 
 import {
   Invoice,
-  InvoiceStatus,
   Payment,
   PaymentMethod,
-  FinanceAuditLogEntry,
-  ExpertFeeSchedule,
   FinanceSummary,
-  MonthlyRevenue,
-  VAT_RATE,
   calculateVAT,
   calculateTotal,
 } from '../types/finance.types';
@@ -53,7 +48,7 @@ export class FinanceEngine {
    */
   static async generateInvoice(payload: GenerateInvoicePayload): Promise<Invoice> {
     try {
-      const { appointment_id, amount_cents, expert_id, due_date, created_by } = payload;
+      const { appointment_id, amount_cents, due_date, created_by } = payload;
 
       // Validate inputs
       if (!appointment_id || amount_cents <= 0 || !due_date) {

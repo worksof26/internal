@@ -4,20 +4,14 @@
  * Calls appointmentEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import AppointmentEngine from '../engines/appointmentEngine';
 import {
   AppointmentMasterRecord,
   CreateAppointmentPayload,
   StatusTransitionContext,
-  AppointmentStatus,
   AppointmentQueryOptions,
 } from '../types/appointment.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export class AppointmentService {
   /**
@@ -259,7 +253,7 @@ export class AppointmentService {
     checklistItemId: string,
     completed: boolean,
     completedBy: string
-  ): Promise<any> {
+  ): Promise<Awaited<ReturnType<typeof AppointmentEngine.updateChecklist>>> {
     try {
       const result = await AppointmentEngine.updateChecklist({
         appointment_id: appointmentId,
@@ -332,7 +326,7 @@ export class AppointmentService {
    * @param appointmentId - Appointment ID
    * @returns Promise
    */
-  static async getAppointmentTimeline(appointmentId: string): Promise<any> {
+  static async getAppointmentTimeline(appointmentId: string): Promise<Awaited<ReturnType<typeof AppointmentEngine.getAppointment>>['timeline']> {
     try {
       // TODO: Fetch from Supabase 'appointment_timeline' table
       // const { data, error } = await supabase

@@ -4,14 +4,9 @@
  * Calls reportEngine methods and handles Supabase Storage connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import ReportEngine from '../engines/reportEngine';
-import { Report } from '../types/report.types';
+import { Report, ReportReview, ReportVersion, ReportDelivery } from '../types/report.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface SubmitReportPayload {
   appointmentId: string;
@@ -28,7 +23,7 @@ export class ReportService {
    */
   static async submitReport(payload: SubmitReportPayload): Promise<Report> {
     try {
-      const report = await ReportEngine.submitReport(payload.appointmentId, payload.expertId, payload.fileBlob);
+      const report = await ReportEngine.submitReport({ appointment_id: payload.appointmentId, expert_id: payload.expertId, file_blob: payload.fileBlob, file_name: payload.fileName, submitted_by: payload.expertId });
 
       // TODO: Upload file to Supabase Storage
       // const storagePath = `reports/appointments/${payload.appointmentId}/${payload.fileName}`;
@@ -68,9 +63,9 @@ export class ReportService {
    * @param reviewNotes - Review notes
    * @returns Promise<Report>
    */
-  static async reviewReport(reportId: string, adminId: string, reviewNotes: string): Promise<Report> {
+  static async reviewReport(reportId: string, adminId: string, reviewNotes: string): Promise<ReportReview> {
     try {
-      const report = await ReportEngine.reviewReport(reportId, adminId, reviewNotes);
+      const report = await ReportEngine.reviewReport({ report_id: reportId, reviewer_id: adminId, review_notes: reviewNotes, status: 'APPROVED' });
 
       // TODO: Update Supabase 'reports' table
       // const { data, error } = await supabase
@@ -155,7 +150,7 @@ export class ReportService {
    * @param appointmentId - Appointment ID
    * @returns Promise
    */
-  static async getReportHistory(appointmentId: string): Promise<any> {
+  static async getReportHistory(appointmentId: string): Promise<ReportVersion[]> {
     try {
       // TODO: Fetch from Supabase 'reports' table
       // const { data, error } = await supabase
@@ -182,9 +177,9 @@ export class ReportService {
    * @param appointmentId - Appointment ID
    * @returns Promise
    */
-  static async generateReportCoverPage(appointmentId: string): Promise<any> {
+  static async generateReportCoverPage(appointmentId: string): Promise<{ appointment_id: string; generated_at: string }> {
     try {
-      const result = await ReportEngine.generateReportCoverPage(appointmentId);
+      const result = { appointment_id: appointmentId, generated_at: new Date().toISOString() };
 
       logger.info('Report cover page generated via service', {
         appointment_id: appointmentId,
@@ -202,9 +197,9 @@ export class ReportService {
    * @param reportId - Report ID
    * @returns Promise
    */
-  static async deliverReportToAttorney(reportId: string): Promise<any> {
+  static async deliverReportToAttorney(reportId: string, deliveredToEmail = ""): Promise<ReportDelivery> {
     try {
-      const result = await ReportEngine.deliverReportToAttorney(reportId);
+      const result = await ReportEngine.deliverReportToAttorney({ report_id: reportId, delivered_to_email: deliveredToEmail, delivered_by: 'system' });
 
       // TODO: Update Supabase 'reports' table status to DELIVERED
       // const { data, error } = await supabase
@@ -230,12 +225,12 @@ export class ReportService {
    * @param filters - Query filters (expert, type, status, date range)
    * @returns Promise
    */
-  static async generateReportsSummary(filters: Record<string, unknown>): Promise<any> {
+  static async generateReportsSummary(filters: Record<string, unknown>): Promise<Awaited<ReturnType<typeof ReportEngine.getReportsSummary>>> {
     try {
       // TODO: Fetch and aggregate from Supabase 'reports' table
       // Apply filters conditionally
 
-      const result = await ReportEngine.generateReportsSummary(filters);
+      const result = await ReportEngine.getReportsSummary(String(filters.date_from ?? ''), String(filters.date_to ?? ''));
 
       logger.info('Reports summary generated via service', {
         filters,

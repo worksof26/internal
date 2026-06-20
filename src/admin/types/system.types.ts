@@ -54,9 +54,13 @@ export interface TableColumn<T> {
 }
 
 export interface NotificationPayload {
+  user_id?: string;
   type: 'SUCCESS' | 'ERROR' | 'INFO' | 'WARNING';
   title: string;
   message: string;
+  body?: string;
+  link?: string;
+  icon?: string;
   duration?: number; // milliseconds, 0 = persist
   action?: {
     label: string;
@@ -122,3 +126,14 @@ export const HTTP_STATUS_CODES = {
   INTERNAL_SERVER_ERROR: 500,
   SERVICE_UNAVAILABLE: 503,
 } as const;
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR';
+  title: string;
+  body: string;
+  link?: string;
+  read_at: string | null;
+  created_at: string;
+}

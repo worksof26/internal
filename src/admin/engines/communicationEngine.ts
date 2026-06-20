@@ -36,6 +36,11 @@ interface InternalNotePayload {
   is_visible_to_external: boolean;
 }
 
+interface InternalNoteRecord extends InternalNotePayload {
+  id: string;
+  created_at: string;
+}
+
 export class CommunicationEngine {
   /**
    * Send an email using a template
@@ -167,7 +172,7 @@ export class CommunicationEngine {
    * @param purpose - Purpose of OTP
    * @returns Promise<{ valid: boolean; error?: string }>
    */
-  static async verifyOTP(email: string, otpCode: string, purpose: string): Promise<{ valid: boolean; error?: string }> {
+  static async verifyOTP(email: string, _otpCode: string, purpose: string): Promise<{ valid: boolean; error?: string }> {
     try {
       // TODO: Replace with actual Supabase query
       // const { data, error } = await supabase
@@ -250,7 +255,7 @@ export class CommunicationEngine {
    * @param payload - Note details
    * @returns Promise - Note record
    */
-  static async logInternalNote(payload: InternalNotePayload): Promise<any> {
+  static async logInternalNote(payload: InternalNotePayload): Promise<InternalNoteRecord> {
     try {
       const { appointment_id, author_id, author_name, content, is_visible_to_external } = payload;
 

@@ -17,10 +17,6 @@ import {
 } from '../types/appointment.types';
 import { logger } from '../utils/logger';
 import AuditEngine from './auditEngine';
-import FinanceEngine from './financeEngine';
-import ReportEngine from './reportEngine';
-import CommunicationEngine from './communicationEngine';
-import DocumentEngine from './documentEngine';
 
 interface AppointmentQueryOptions {
   limit?: number;
@@ -40,6 +36,11 @@ interface ChecklistUpdatePayload {
   completed_by: string;
 }
 
+interface ChecklistUpdateResult {
+  id: string;
+  completed: boolean;
+}
+
 export class AppointmentEngine {
   /**
    * Create a new appointment
@@ -53,7 +54,7 @@ export class AppointmentEngine {
     actor_id: string
   ): Promise<AppointmentMasterRecord> {
     try {
-      const { appointment_type, appointment_datetime, venue, duration_minutes, claimant_id, attorney_id, created_by } =
+      const { appointment_type, appointment_datetime, venue, duration_minutes, claimant_id, attorney_id } =
         payload;
 
       // Validate inputs
@@ -200,7 +201,7 @@ export class AppointmentEngine {
     total: number;
   }> {
     try {
-      const { limit = 50, offset = 0, status, appointment_type, date_from, date_to, attorney_id, expert_id } = options;
+      const { limit = 50, offset = 0, status, appointment_type } = options;
 
       // TODO: Replace with actual Supabase query with filters
       // Build query conditionally based on provided filters
@@ -374,7 +375,7 @@ export class AppointmentEngine {
     appointmentId: string,
     new_datetime: string,
     new_venue: string | null,
-    rescheduled_by: string
+    _rescheduled_by: string
   ): Promise<AppointmentMasterRecord> {
     try {
       // TODO: Replace with actual Supabase update + notifications
@@ -420,9 +421,9 @@ export class AppointmentEngine {
   /**
    * Update appointment checklist item
    * @param payload - Checklist update details
-   * @returns Promise<any> - Updated checklist
+   * @returns Updated checklist item state
    */
-  static async updateChecklist(payload: ChecklistUpdatePayload): Promise<any> {
+  static async updateChecklist(payload: ChecklistUpdatePayload): Promise<ChecklistUpdateResult> {
     try {
       const { appointment_id, checklist_item_id, completed, completed_by } = payload;
 
@@ -466,7 +467,7 @@ export class AppointmentEngine {
   static async cancelAppointment(
     appointmentId: string,
     reason: string,
-    cancelled_by: string
+    _cancelled_by: string
   ): Promise<AppointmentMasterRecord> {
     try {
       if (!reason || reason.trim().length === 0) {

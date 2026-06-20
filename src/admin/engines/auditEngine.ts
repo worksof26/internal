@@ -15,9 +15,9 @@ interface AuditLogPayload {
   action_type: AuditActionType;
   entity_type: EntityType;
   entity_id: string;
-  before_state?: Record<string, unknown>;
-  after_state?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
+  before_state?: unknown;
+  after_state?: unknown;
+  metadata?: unknown;
   ip_address?: string;
   user_agent?: string;
 }
@@ -114,7 +114,7 @@ export class AuditEngine {
    */
   static async getAuditLog(filters: AuditFilterOptions): Promise<AuditQueryResult> {
     try {
-      const { actor_id, action_type, entity_type, entity_id, date_from, date_to, limit = 100, offset = 0 } = filters;
+      const { actor_id, action_type, entity_type, limit = 100, offset = 0 } = filters;
 
       // TODO: Replace with actual Supabase query with filters
       // let query = supabase.from('audit_logs').select('*', { count: 'exact' });
@@ -230,7 +230,7 @@ export class AuditEngine {
    */
   static async exportAuditLogs(filters: AuditFilterOptions): Promise<AuditLog[]> {
     try {
-      const { actor_id, action_type, entity_type, date_from, date_to } = filters;
+      const { actor_id, action_type, entity_type } = filters;
 
       // TODO: Replace with actual Supabase query
       // let query = supabase.from('audit_logs').select('*');

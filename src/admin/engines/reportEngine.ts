@@ -6,11 +6,9 @@
  * Pure TypeScript — no React, no JSX.
  */
 
-import { ReportStatus, Report, ReportVersion, ReportReview, ReportDelivery } from '../types/report.types';
+import { Report, ReportVersion, ReportReview, ReportDelivery } from '../types/report.types';
 import { logger } from '../utils/logger';
 import AuditEngine from './auditEngine';
-import CommunicationEngine from './communicationEngine';
-import DocumentEngine from './documentEngine';
 
 interface SubmitReportPayload {
   appointment_id: string;
@@ -31,6 +29,16 @@ interface DeliverReportPayload {
   report_id: string;
   delivered_to_email: string;
   delivered_by: string;
+}
+
+interface ReportSummary {
+  total_submitted: number;
+  total_approved: number;
+  pending_review: number;
+  revision_requested: number;
+  delivered: number;
+  average_turnaround_days: number;
+  monthly_stats: { month: string; submitted: number; approved: number; delivered: number }[];
 }
 
 export class ReportEngine {
@@ -351,7 +359,7 @@ export class ReportEngine {
    * @param dateTo - End date
    * @returns Promise - Report summary
    */
-  static async getReportsSummary(dateFrom: string, dateTo: string): Promise<any> {
+  static async getReportsSummary(dateFrom: string, dateTo: string): Promise<ReportSummary> {
     try {
       // TODO: Replace with actual Supabase aggregation queries
 

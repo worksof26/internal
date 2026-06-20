@@ -4,14 +4,9 @@
  * Calls communicationEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import CommunicationEngine from '../engines/communicationEngine';
-import { CommunicationLog, EmailTemplate } from '../types/communication.types';
+import { CommunicationLog, EmailTemplate, EmailTemplateId } from '../types/communication.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface SendEmailPayload {
   to: string;
@@ -32,14 +27,14 @@ export class CommunicationService {
    * @param payload - Email details
    * @returns Promise
    */
-  static async sendEmail(payload: SendEmailPayload): Promise<any> {
+  static async sendEmail(payload: SendEmailPayload): Promise<Awaited<ReturnType<typeof CommunicationEngine.sendEmail>>> {
     try {
-      const result = await CommunicationEngine.sendEmail(
-        payload.to,
-        payload.templateId,
-        payload.variables,
-        payload.appointmentId
-      );
+      const result = await CommunicationEngine.sendEmail({
+        to: payload.to,
+        template_id: payload.templateId as EmailTemplateId,
+        variables: payload.variables,
+        appointment_id: payload.appointmentId,
+      });
 
       // TODO: Insert into Supabase 'communications_log' table
       // const { data, error } = await supabase
@@ -73,9 +68,9 @@ export class CommunicationService {
    * @param purpose - OTP purpose (PASSWORD_RESET, ACCOUNT_CREATED, etc.)
    * @returns Promise
    */
-  static async sendOTP(email: string, purpose: string): Promise<any> {
+  static async sendOTP(email: string, purpose: string): Promise<Awaited<ReturnType<typeof CommunicationEngine.sendOTP>>> {
     try {
-      const result = await CommunicationEngine.sendOTP(email, purpose);
+      const result = await CommunicationEngine.sendOTP({ email, purpose: purpose as 'LOGIN' | 'PASSWORD_RESET' | 'ACCOUNT_SETUP' });
 
       // TODO: Insert into Supabase 'communications_log' table
       // const { data, error } = await supabase
@@ -107,13 +102,13 @@ export class CommunicationService {
    * @param payload - SMS details
    * @returns Promise
    */
-  static async sendSMS(payload: SendSMSPayload): Promise<any> {
+  static async sendSMS(payload: SendSMSPayload): Promise<Awaited<ReturnType<typeof CommunicationEngine.sendSMS>>> {
     try {
-      const result = await CommunicationEngine.sendSMS(
-        payload.phoneNumber,
-        payload.message,
-        payload.appointmentId
-      );
+      const result = await CommunicationEngine.sendSMS({
+        phone_number: payload.phoneNumber,
+        message: payload.message,
+        appointment_id: payload.appointmentId,
+      });
 
       // TODO: Insert into Supabase 'communications_log' table
       // const { data, error } = await supabase
@@ -147,9 +142,9 @@ export class CommunicationService {
    * @param note - Note content
    * @returns Promise
    */
-  static async logInternalNote(appointmentId: string, authorId: string, note: string): Promise<any> {
+  static async logInternalNote(appointmentId: string, authorId: string, note: string): Promise<Awaited<ReturnType<typeof CommunicationEngine.logInternalNote>>> {
     try {
-      const result = await CommunicationEngine.logInternalNote(appointmentId, authorId, note);
+      const result = await CommunicationEngine.logInternalNote({ appointment_id: appointmentId, author_id: authorId, author_name: authorId, content: note, is_visible_to_external: false });
 
       // TODO: Insert into Supabase 'internal_notes' table
       // const { data, error } = await supabase
@@ -242,7 +237,7 @@ export class CommunicationService {
       //   .select()
       //   .single();
 
-      const result = await CommunicationEngine.updateEmailTemplate(id, content);
+      const result = await CommunicationEngine.updateEmailTemplate(id as EmailTemplateId, content, 'system');
 
       logger.info('Email template updated via service', {
         template_id: id,

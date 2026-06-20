@@ -5,7 +5,6 @@
  * Pure TypeScript — no React, no JSX.
  */
 
-import { Document } from '../types/appointment.types';
 import { logger } from '../utils/logger';
 
 type DocumentType =
@@ -64,7 +63,7 @@ export class DocumentEngine {
 
       // Generate storage path: appointments/{appointment_id}/{doc_type}/{timestamp}_{filename}
       const timestamp = Date.now();
-      const storagePath = `appointments/${appointment_id}/${doc_type}/${timestamp}_${file_name}`;
+      const storagePath = `${this.STORAGE_BUCKET}/appointments/${appointment_id}/${doc_type}/${timestamp}_${file_name}`;
 
       // TODO: Replace with actual Supabase Storage upload
       // const { data, error } = await supabase.storage
@@ -93,8 +92,8 @@ export class DocumentEngine {
         id: `doc_${timestamp}`,
         appointment_id,
         file_name,
-        file_type: (file as any).type || 'application/octet-stream',
-        file_size: (file as any).size || 0,
+        file_type: ('type' in file ? file.type : 'application/octet-stream') || 'application/octet-stream',
+        file_size: ('size' in file ? file.size : 0) || 0,
         doc_type,
         storage_path: storagePath,
         uploaded_at: new Date().toISOString(),
@@ -256,11 +255,11 @@ export class DocumentEngine {
       return { valid: false, error: 'File name is required' };
     }
 
-    if ((file as any).size > MAX_FILE_SIZE) {
+    if (('size' in file ? file.size : 0) > MAX_FILE_SIZE) {
       return { valid: false, error: `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit` };
     }
 
-    if (!ALLOWED_TYPES.includes((file as any).type)) {
+    if (!ALLOWED_TYPES.includes(('type' in file ? file.type : 'application/octet-stream'))) {
       return { valid: false, error: 'File type not allowed' };
     }
 

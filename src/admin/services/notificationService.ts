@@ -4,14 +4,9 @@
  * Calls notificationEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import NotificationEngine from '../engines/notificationEngine';
 import { Notification } from '../types/system.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface CreateNotificationPayload {
   userId: string;
@@ -29,13 +24,7 @@ export class NotificationService {
    */
   static async createNotification(payload: CreateNotificationPayload): Promise<Notification> {
     try {
-      const notification = await NotificationEngine.createNotification(
-        payload.userId,
-        payload.type,
-        payload.title,
-        payload.body,
-        payload.link
-      );
+      const notification = await NotificationEngine.createNotification({ user_id: payload.userId, type: payload.type as 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR', title: payload.title, message: payload.body, body: payload.body, link: payload.link });
 
       // TODO: Insert into Supabase 'notifications' table
       // const { data, error } = await supabase
@@ -68,7 +57,7 @@ export class NotificationService {
    * @param notificationId - Notification ID
    * @returns Promise
    */
-  static async markAsRead(notificationId: string): Promise<any> {
+  static async markAsRead(notificationId: string): Promise<Awaited<ReturnType<typeof NotificationEngine.markAsRead>>> {
     try {
       // TODO: Update Supabase 'notifications' table
       // const { data, error } = await supabase
@@ -96,7 +85,7 @@ export class NotificationService {
    * @param userId - User ID
    * @returns Promise
    */
-  static async markAllAsRead(userId: string): Promise<any> {
+  static async markAllAsRead(userId: string): Promise<Awaited<ReturnType<typeof NotificationEngine.markAllAsRead>>> {
     try {
       // TODO: Update all notifications for user in Supabase
       // const { data, error } = await supabase
@@ -128,8 +117,8 @@ export class NotificationService {
    */
   static async getUserNotifications(
     userId: string,
-    limit: number = 50,
-    offset: number = 0
+    _limit: number = 50,
+    _offset: number = 0
   ): Promise<Notification[]> {
     try {
       // TODO: Fetch from Supabase 'notifications' table

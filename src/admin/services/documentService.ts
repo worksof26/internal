@@ -4,14 +4,9 @@
  * Calls documentEngine methods and handles Supabase Storage connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import DocumentEngine from '../engines/documentEngine';
 import { Document } from '../types/appointment.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 type DocumentType =
   | 'REFERRAL_LETTER'
@@ -46,12 +41,7 @@ export class DocumentService {
       //   .from('documents')
       //   .upload(storagePath, payload.file);
 
-      const result = await DocumentEngine.uploadDocument(
-        payload.appointmentId,
-        payload.file,
-        payload.docType,
-        payload.uploadedBy
-      );
+      const result = await DocumentEngine.uploadDocument({ appointment_id: payload.appointmentId, file: payload.file, file_name: payload.file.name, doc_type: payload.docType, uploaded_by: payload.uploadedBy });
 
       // TODO: Insert metadata into Supabase 'documents' table
       // const { data: docData, error: docError } = await supabase
@@ -115,7 +105,7 @@ export class DocumentService {
    * @param actorId - User ID
    * @returns Promise
    */
-  static async deleteDocument(documentId: string, actorId: string): Promise<any> {
+  static async deleteDocument(documentId: string, actorId: string): Promise<Awaited<ReturnType<typeof DocumentEngine.deleteDocument>>> {
     try {
       // TODO: Soft delete from Supabase (update is_deleted = true)
       // const { data, error } = await supabase
@@ -157,7 +147,7 @@ export class DocumentService {
         document_path: documentPath,
       });
 
-      return result;
+      return result.signed_url;
     } catch (error) {
       logger.error('Document service: Failed to get signed URL', error as Error);
       throw error;

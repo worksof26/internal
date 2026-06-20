@@ -4,14 +4,9 @@
  * Calls financeEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import FinanceEngine from '../engines/financeEngine';
-import { Invoice, InvoiceStatus } from '../types/finance.types';
+import { Invoice } from '../types/finance.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface GenerateInvoicePayload {
   appointmentId: string;
@@ -39,7 +34,7 @@ export class FinanceService {
    */
   static async generateInvoice(payload: GenerateInvoicePayload): Promise<Invoice> {
     try {
-      const invoice = await FinanceEngine.generateInvoice(payload.appointmentId, payload.feeSchedule);
+      const invoice = await FinanceEngine.generateInvoice({ appointment_id: payload.appointmentId, amount_cents: payload.feeSchedule.amountCents, expert_id: payload.feeSchedule.expertId, due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), created_by: payload.generatedBy });
 
       // TODO: Insert into Supabase 'invoices' table
       // const vatCents = Math.round(payload.feeSchedule.amountCents * 0.15); // 15% VAT
@@ -71,15 +66,11 @@ export class FinanceService {
   /**
    * Record payment for invoice
    * @param payload - Payment details
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async recordPayment(payload: RecordPaymentPayload): Promise<any> {
+  static async recordPayment(payload: RecordPaymentPayload): Promise<Awaited<ReturnType<typeof FinanceEngine.recordPayment>>> {
     try {
-      const result = await FinanceEngine.recordPayment(payload.invoiceId, {
-        amount_cents: payload.amount_cents,
-        payment_method: payload.payment_method,
-        reference: payload.reference,
-      });
+      const result = await FinanceEngine.recordPayment({ invoice_id: payload.invoiceId, amount_cents: payload.amount_cents, payment_method: payload.payment_method as import('../types/finance.types').PaymentMethod, reference: payload.reference, recorded_by: payload.recordedBy });
 
       // TODO: Insert into Supabase 'payments' table
       // const { data: paymentData, error: paymentError } = await supabase
@@ -120,17 +111,17 @@ export class FinanceService {
    * @returns number - VAT amount in cents
    */
   static async calculateVAT(amount: number): Promise<number> {
-    return FinanceEngine.calculateVAT(amount);
+    return Math.round(amount * 0.15);
   }
 
   /**
    * Mark invoice as overdue
    * @param invoiceId - Invoice ID
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async markOverdue(invoiceId: string): Promise<any> {
+  static async markOverdue(invoiceId: string): Promise<Awaited<ReturnType<typeof FinanceEngine.markOverdue>>> {
     try {
-      const result = await FinanceEngine.markOverdue(invoiceId);
+      const result = await FinanceEngine.markOverdue({ invoice_id: invoiceId, marked_by: 'system' });
 
       // TODO: Update invoice status to OVERDUE
       // const { data, error } = await supabase
@@ -154,11 +145,11 @@ export class FinanceService {
   /**
    * Escalate debt
    * @param invoiceId - Invoice ID
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async escalateDebt(invoiceId: string): Promise<any> {
+  static async escalateDebt(invoiceId: string): Promise<Awaited<ReturnType<typeof FinanceEngine.escalateDebt>>> {
     try {
-      const result = await FinanceEngine.escalateDebt(invoiceId);
+      const result = await FinanceEngine.escalateDebt(invoiceId, 'system');
 
       // TODO: Update invoice status to ESCALATED
       // const { data, error } = await supabase
@@ -183,17 +174,14 @@ export class FinanceService {
    * Generate financial summary for date range
    * @param dateFrom - Start date
    * @param dateTo - End date
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async generateFinancialSummary(dateFrom: string, dateTo: string): Promise<any> {
+  static async generateFinancialSummary(dateFrom: string, dateTo: string): Promise<Awaited<ReturnType<typeof FinanceEngine.getFinancialSummary>>> {
     try {
       // TODO: Aggregate query from Supabase 'invoices' and 'payments' tables
       // SUM(total_cents), COUNT by status, etc.
 
-      const result = await FinanceEngine.generateFinancialSummary({
-        date_from: dateFrom,
-        date_to: dateTo,
-      });
+      const result = await FinanceEngine.getFinancialSummary(dateFrom, dateTo);
 
       logger.info('Financial summary generated via service', {
         date_range: { from: dateFrom, to: dateTo },
@@ -236,9 +224,9 @@ export class FinanceService {
    * Get fee schedule for expert and appointment type
    * @param expertId - Expert ID
    * @param appointmentType - Appointment type
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async getFeeSchedule(expertId: string, appointmentType: string): Promise<any> {
+  static async getFeeSchedule(expertId: string, appointmentType: string): Promise<Awaited<ReturnType<typeof FinanceEngine.getFeeSchedule>>> {
     try {
       // TODO: Fetch from Supabase 'expert_fee_schedules' table
       // const { data, error } = await supabase
@@ -267,9 +255,9 @@ export class FinanceService {
    * @param invoiceId - Invoice ID
    * @param discountPercent - Discount percentage
    * @param authorisedBy - User ID
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async applyDiscount(invoiceId: string, discountPercent: number, authorisedBy: string): Promise<any> {
+  static async applyDiscount(invoiceId: string, discountPercent: number, authorisedBy: string): Promise<Awaited<ReturnType<typeof FinanceEngine.applyDiscount>>> {
     try {
       const result = await FinanceEngine.applyDiscount(invoiceId, discountPercent, authorisedBy);
 
@@ -300,9 +288,9 @@ export class FinanceService {
    * @param invoiceId - Invoice ID
    * @param reason - Void reason
    * @param authorisedBy - User ID
-   * @returns Promise<any>
+   * @returns Engine result
    */
-  static async voidInvoice(invoiceId: string, reason: string, authorisedBy: string): Promise<any> {
+  static async voidInvoice(invoiceId: string, reason: string, authorisedBy: string): Promise<Awaited<ReturnType<typeof FinanceEngine.voidInvoice>>> {
     try {
       const result = await FinanceEngine.voidInvoice(invoiceId, reason, authorisedBy);
 

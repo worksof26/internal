@@ -65,9 +65,9 @@ export interface AuditLog {
   action_type: AuditActionType;
   entity_type: EntityType;
   entity_id: string;
-  before_state?: Record<string, unknown>;
-  after_state?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
+  before_state?: unknown;
+  after_state?: unknown;
+  metadata?: unknown;
   ip_address?: string;
   user_agent?: string;
   created_at: string;

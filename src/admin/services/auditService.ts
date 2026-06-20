@@ -4,14 +4,9 @@
  * Calls auditEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import AuditEngine from '../engines/auditEngine';
 import { AuditLog, AuditFilterOptions, EntityType, AuditActionType } from '../types/audit.types';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface LogActionPayload {
   actor_id: string;

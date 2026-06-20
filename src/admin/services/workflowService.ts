@@ -4,13 +4,8 @@
  * Calls workflowEngine methods and handles database connectivity
  */
 
-import { createClient } from '@supabase/supabase-js';
 import WorkflowEngine from '../engines/workflowEngine';
 import { logger } from '../utils/logger';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export class WorkflowService {
   /**
@@ -18,7 +13,7 @@ export class WorkflowService {
    * Executes all scheduled automated tasks
    * @returns Promise
    */
-  static async runDailyWorkflow(): Promise<any> {
+  static async runDailyWorkflow(): Promise<Awaited<ReturnType<typeof WorkflowEngine.runDailyWorkflow>>> {
     try {
       const result = await WorkflowEngine.runDailyWorkflow();
 
@@ -35,7 +30,7 @@ export class WorkflowService {
    * Check for overdue invoices and trigger escalation workflow
    * @returns Promise
    */
-  static async checkOverdueInvoices(): Promise<any> {
+  static async checkOverdueInvoices(): Promise<Awaited<ReturnType<typeof WorkflowEngine.checkOverdueInvoices>>> {
     try {
       // TODO: Query Supabase for invoices with due_date < today
       // const { data, error } = await supabase
@@ -59,7 +54,7 @@ export class WorkflowService {
    * Check for pending assessments and auto-transition if deadline passed
    * @returns Promise
    */
-  static async checkPendingAssessments(): Promise<any> {
+  static async checkPendingAssessments(): Promise<Awaited<ReturnType<typeof WorkflowEngine.checkPendingAssessments>>> {
     try {
       // TODO: Query Supabase for appointments in ASSESSMENT_PENDING status
       // Check if deadline has passed (appointment_datetime + assessment_deadline_days)
@@ -79,7 +74,7 @@ export class WorkflowService {
    * Check for pending reports and auto-transition if deadline passed
    * @returns Promise
    */
-  static async checkPendingReports(): Promise<any> {
+  static async checkPendingReports(): Promise<Awaited<ReturnType<typeof WorkflowEngine.checkPendingReports>>> {
     try {
       // TODO: Query Supabase for appointments in REPORT_PENDING status
       // Check if deadline has passed (assessment_complete_date + report_deadline_days)
@@ -99,7 +94,7 @@ export class WorkflowService {
    * Auto-archive completed appointments after 90 days
    * @returns Promise
    */
-  static async autoArchiveCompleted(): Promise<any> {
+  static async autoArchiveCompleted(): Promise<Awaited<ReturnType<typeof WorkflowEngine.autoArchiveCompleted>>> {
     try {
       // TODO: Query Supabase for appointments with status=PAID and updated_at < 90 days ago
       // Transition to ARCHIVED
@@ -119,7 +114,7 @@ export class WorkflowService {
    * Send scheduled reminders (24h and 1h before appointment)
    * @returns Promise
    */
-  static async sendScheduledReminders(): Promise<any> {
+  static async sendScheduledReminders(): Promise<Awaited<ReturnType<typeof WorkflowEngine.sendScheduledReminders>>> {
     try {
       // TODO: Query Supabase for appointments with appointment_datetime between now and 24h away
       // Also query for appointments between now and 1h away
