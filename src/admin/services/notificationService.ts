@@ -62,7 +62,7 @@ export class NotificationService {
    * @param notificationId - Notification ID
    * @returns Promise
    */
-  static async markAsRead(notificationId: string): Promise<any> {
+  static async markAsRead(notificationId: string): Promise<Notification> {
     try {
       // TODO: Update Supabase 'notifications' table
       // const { data, error } = await supabase
@@ -90,7 +90,7 @@ export class NotificationService {
    * @param userId - User ID
    * @returns Promise
    */
-  static async markAllAsRead(userId: string): Promise<any> {
+  static async markAllAsRead(userId: string): Promise<number> {
     try {
       // TODO: Update all notifications for user in Supabase
       // const { data, error } = await supabase

@@ -6,7 +6,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import FinanceEngine from '../engines/financeEngine';
-import { Invoice, InvoiceStatus } from '../types/finance.types';
+import { FinanceSummary, Invoice, Payment, PaymentMethod } from '../types/finance.types';
 import { logger } from '../utils/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -26,7 +26,7 @@ interface GenerateInvoicePayload {
 interface RecordPaymentPayload {
   invoiceId: string;
   amount_cents: number;
-  payment_method: string;
+  payment_method: PaymentMethod;
   reference: string;
   recordedBy: string;
 }
@@ -71,11 +71,11 @@ export class FinanceService {
   /**
    * Record payment for invoice
    * @param payload - Payment details
-   * @returns Promise<any>
+   * @returns Promise<Payment>
    */
-  static async recordPayment(payload: RecordPaymentPayload): Promise<any> {
+  static async recordPayment(payload: RecordPaymentPayload): Promise<Payment> {
     try {
-      const result = await FinanceEngine.recordPayment({ invoice_id: payload.invoiceId, amount_cents: payload.amount_cents, payment_method: payload.payment_method as import('../types/finance.types').PaymentMethod, reference: payload.reference, recorded_by: payload.recordedBy });
+      const result = await FinanceEngine.recordPayment({ invoice_id: payload.invoiceId, amount_cents: payload.amount_cents, payment_method: payload.payment_method, reference: payload.reference, recorded_by: payload.recordedBy });
 
       // TODO: Insert into Supabase 'payments' table
       // const { data: paymentData, error: paymentError } = await supabase
@@ -122,9 +122,9 @@ export class FinanceService {
   /**
    * Mark invoice as overdue
    * @param invoiceId - Invoice ID
-   * @returns Promise<any>
+   * @returns Promise<Invoice>
    */
-  static async markOverdue(invoiceId: string): Promise<any> {
+  static async markOverdue(invoiceId: string): Promise<Invoice> {
     try {
       const result = await FinanceEngine.markOverdue({ invoice_id: invoiceId, marked_by: 'system' });
 
@@ -150,9 +150,9 @@ export class FinanceService {
   /**
    * Escalate debt
    * @param invoiceId - Invoice ID
-   * @returns Promise<any>
+   * @returns Promise<Invoice>
    */
-  static async escalateDebt(invoiceId: string): Promise<any> {
+  static async escalateDebt(invoiceId: string): Promise<Invoice> {
     try {
       const result = await FinanceEngine.escalateDebt(invoiceId, 'system');
 
@@ -179,9 +179,9 @@ export class FinanceService {
    * Generate financial summary for date range
    * @param dateFrom - Start date
    * @param dateTo - End date
-   * @returns Promise<any>
+   * @returns Promise<FinanceSummary>
    */
-  static async generateFinancialSummary(dateFrom: string, dateTo: string): Promise<any> {
+  static async generateFinancialSummary(dateFrom: string, dateTo: string): Promise<FinanceSummary> {
     try {
       // TODO: Aggregate query from Supabase 'invoices' and 'payments' tables
       // SUM(total_cents), COUNT by status, etc.
@@ -229,9 +229,9 @@ export class FinanceService {
    * Get fee schedule for expert and appointment type
    * @param expertId - Expert ID
    * @param appointmentType - Appointment type
-   * @returns Promise<any>
+   * @returns Promise<number>
    */
-  static async getFeeSchedule(expertId: string, appointmentType: string): Promise<any> {
+  static async getFeeSchedule(expertId: string, appointmentType: string): Promise<number> {
     try {
       // TODO: Fetch from Supabase 'expert_fee_schedules' table
       // const { data, error } = await supabase
@@ -260,9 +260,9 @@ export class FinanceService {
    * @param invoiceId - Invoice ID
    * @param discountPercent - Discount percentage
    * @param authorisedBy - User ID
-   * @returns Promise<any>
+   * @returns Promise<Invoice>
    */
-  static async applyDiscount(invoiceId: string, discountPercent: number, authorisedBy: string): Promise<any> {
+  static async applyDiscount(invoiceId: string, discountPercent: number, authorisedBy: string): Promise<Invoice> {
     try {
       const result = await FinanceEngine.applyDiscount(invoiceId, discountPercent, authorisedBy);
 
@@ -293,9 +293,9 @@ export class FinanceService {
    * @param invoiceId - Invoice ID
    * @param reason - Void reason
    * @param authorisedBy - User ID
-   * @returns Promise<any>
+   * @returns Promise<Invoice>
    */
-  static async voidInvoice(invoiceId: string, reason: string, authorisedBy: string): Promise<any> {
+  static async voidInvoice(invoiceId: string, reason: string, authorisedBy: string): Promise<Invoice> {
     try {
       const result = await FinanceEngine.voidInvoice(invoiceId, reason, authorisedBy);
 
