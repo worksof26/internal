@@ -127,7 +127,7 @@ export class AppointmentEngine {
         action_type: 'APPT_CREATED',
         entity_type: 'APPOINTMENT',
         entity_id: appointment.id,
-        after_state: appointment,
+        after_state: appointment as unknown as Record<string, unknown>,
       });
 
       logger.info('Appointment created', {

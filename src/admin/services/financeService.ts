@@ -9,8 +9,8 @@ import FinanceEngine from '../engines/financeEngine';
 import { Invoice, InvoiceStatus } from '../types/finance.types';
 import { logger } from '../utils/logger';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface GenerateInvoicePayload {
@@ -39,7 +39,7 @@ export class FinanceService {
    */
   static async generateInvoice(payload: GenerateInvoicePayload): Promise<Invoice> {
     try {
-      const invoice = await FinanceEngine.generateInvoice(payload.appointmentId, payload.feeSchedule);
+      const invoice = await FinanceEngine.generateInvoice({ appointment_id: payload.appointmentId, amount_cents: payload.feeSchedule.amountCents, expert_id: payload.feeSchedule.expertId, due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), created_by: payload.generatedBy });
 
       // TODO: Insert into Supabase 'invoices' table
       // const vatCents = Math.round(payload.feeSchedule.amountCents * 0.15); // 15% VAT
@@ -75,11 +75,7 @@ export class FinanceService {
    */
   static async recordPayment(payload: RecordPaymentPayload): Promise<any> {
     try {
-      const result = await FinanceEngine.recordPayment(payload.invoiceId, {
-        amount_cents: payload.amount_cents,
-        payment_method: payload.payment_method,
-        reference: payload.reference,
-      });
+      const result = await FinanceEngine.recordPayment({ invoice_id: payload.invoiceId, amount_cents: payload.amount_cents, payment_method: payload.payment_method as import('../types/finance.types').PaymentMethod, reference: payload.reference, recorded_by: payload.recordedBy });
 
       // TODO: Insert into Supabase 'payments' table
       // const { data: paymentData, error: paymentError } = await supabase
@@ -120,7 +116,7 @@ export class FinanceService {
    * @returns number - VAT amount in cents
    */
   static async calculateVAT(amount: number): Promise<number> {
-    return FinanceEngine.calculateVAT(amount);
+    return Math.round(amount * 0.15);
   }
 
   /**
@@ -130,7 +126,7 @@ export class FinanceService {
    */
   static async markOverdue(invoiceId: string): Promise<any> {
     try {
-      const result = await FinanceEngine.markOverdue(invoiceId);
+      const result = await FinanceEngine.markOverdue({ invoice_id: invoiceId, marked_by: 'system' });
 
       // TODO: Update invoice status to OVERDUE
       // const { data, error } = await supabase
@@ -158,7 +154,7 @@ export class FinanceService {
    */
   static async escalateDebt(invoiceId: string): Promise<any> {
     try {
-      const result = await FinanceEngine.escalateDebt(invoiceId);
+      const result = await FinanceEngine.escalateDebt(invoiceId, 'system');
 
       // TODO: Update invoice status to ESCALATED
       // const { data, error } = await supabase
@@ -190,10 +186,7 @@ export class FinanceService {
       // TODO: Aggregate query from Supabase 'invoices' and 'payments' tables
       // SUM(total_cents), COUNT by status, etc.
 
-      const result = await FinanceEngine.generateFinancialSummary({
-        date_from: dateFrom,
-        date_to: dateTo,
-      });
+      const result = await FinanceEngine.getFinancialSummary(dateFrom, dateTo);
 
       logger.info('Financial summary generated via service', {
         date_range: { from: dateFrom, to: dateTo },

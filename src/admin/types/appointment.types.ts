@@ -204,3 +204,14 @@ export const VALID_STATUS_TRANSITIONS: Record<AppointmentStatus, AppointmentStat
 };
 
 export const STATUS_REQUIRES_REASON = ['REJECTED', 'CANCELLED'];
+
+export interface AppointmentQueryOptions {
+  limit?: number;
+  offset?: number;
+  status?: AppointmentStatus;
+  appointment_type?: AppointmentType;
+  date_from?: string;
+  date_to?: string;
+  attorney_id?: string;
+  expert_id?: string;
+}

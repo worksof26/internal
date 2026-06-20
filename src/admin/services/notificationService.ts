@@ -9,8 +9,8 @@ import NotificationEngine from '../engines/notificationEngine';
 import { Notification } from '../types/system.types';
 import { logger } from '../utils/logger';
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface CreateNotificationPayload {
@@ -29,13 +29,7 @@ export class NotificationService {
    */
   static async createNotification(payload: CreateNotificationPayload): Promise<Notification> {
     try {
-      const notification = await NotificationEngine.createNotification(
-        payload.userId,
-        payload.type,
-        payload.title,
-        payload.body,
-        payload.link
-      );
+      const notification = await NotificationEngine.createNotification({ user_id: payload.userId, type: payload.type as 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR', title: payload.title, message: payload.body, body: payload.body, link: payload.link });
 
       // TODO: Insert into Supabase 'notifications' table
       // const { data, error } = await supabase

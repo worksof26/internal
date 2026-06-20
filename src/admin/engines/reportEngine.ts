@@ -93,7 +93,7 @@ export class ReportEngine {
         action_type: 'RPT_SUBMITTED',
         entity_type: 'REPORT',
         entity_id: report.id,
-        after_state: report,
+        after_state: report as unknown as Record<string, unknown>,
       });
 
       logger.info('Report submitted', {
